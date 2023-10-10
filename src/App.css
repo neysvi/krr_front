@@ -1,0 +1,47 @@
+@import '~antd/dist/reset.css';
+
+.App {
+  padding: 20px;
+  text-align: center;
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.login-container .ant-form {
+  width: 300px;
+  padding: 20px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.login-container .ant-form-item-label {
+  text-align: left;
+}
+
+.login-container .ant-btn {
+  width: 100%;
+}
+
+.app-title {
+  font-size: 30px;
+  margin-left: 20px;
+  margin-top: 20px;
+  /* padding: 20px; */
+}
+
+.add-data-button {
+  margin-right: 20px;
+  float: right; /* Переместить кнопку вправо */
+}
+
+.header-container {
+  /* display: flex; Располагает элементы внутри контейнера в ряд */
+  align-items: center; /* Выравнивает элементы по вертикали */
+}
+
