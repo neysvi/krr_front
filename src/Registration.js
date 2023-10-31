@@ -2,38 +2,43 @@ import React from 'react';
 import { Form, Input, Button } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
-const Login = ({ setUserName }) => { 
+const Registration = () => {
   const navigate = useNavigate();
 
   const onFinish = async (values) => {
     try {
-      const response = await fetch('/api/login', {
+      const response = await fetch('/api/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(values),
-        credentials: 'include', 
+        credentials: 'include',
       });
 
-      if (response.status === 200) {
-        const data = await response.json();
-        console.log(data);
-        localStorage.setItem('userName', data.username);
-        setUserName(data.username); 
-        navigate('/reestr');
+      if (response.status === 201) {
+        // Успешная регистрация, перенаправляем пользователя на страницу авторизации
+        navigate('/login');
       } else {
         const data = await response.json();
         console.error(data.message);
-      }     
+      }
     } catch (error) {
       console.error('Произошла ошибка:', error);
     }
   };
 
-  const validateEmail = (rule, value, callback) => {
+  const validateUsername = (rule, value, callback) => {
     if (!value) {
       callback('Введите имя пользователя');
+    } else {
+      callback();
+    }
+  };
+
+  const validateEmail = (rule, value, callback) => {
+    if (!value) {
+      callback('Введите адрес электронной почты');
     } else {
       const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
       if (!emailRegex.test(value)) {
@@ -47,13 +52,23 @@ const Login = ({ setUserName }) => {
   return (
     <div className="login-container">
       <Form
-        name="login"
+        name="registration"
         onFinish={onFinish}
         layout="vertical"
         initialValues={{ remember: true }}
       >
         <Form.Item
           label="Имя пользователя"
+          name="user_name"
+          rules={[
+            { validator: validateUsername },
+          ]}
+        >
+          <Input />
+        </Form.Item>
+
+        <Form.Item
+          label="Адрес электронной почты"
           name="user_email"
           rules={[
             { validator: validateEmail },
@@ -71,20 +86,13 @@ const Login = ({ setUserName }) => {
         </Form.Item>
 
         <Form.Item>
-        <div className="login-buttons">
           <Button type="primary" htmlType="submit">
-            Войти
-          </Button>
-
-          {/* Кнопка регистрации */}
-          <Button type="default" onClick={() => navigate('/registration')} style={{ marginTop: '10px' }} >
             Зарегистрироваться
           </Button>
-        </div>
-      </Form.Item>
-    </Form>
-  </div>
+        </Form.Item>
+      </Form>
+    </div>
   );
 };
 
-export default Login;
+export default Registration;

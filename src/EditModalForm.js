@@ -9,18 +9,23 @@ const { Option } = Select;
 const EditModalForm = ({ visible, onCancel, onSave, currentData }) => {
   const [form] = Form.useForm();
   const [ctBeforeOperationFile, setCtBeforeOperationFile] = useState(null);
-
+  const [setCt1MonOperation, setCt1MonOperationFile] = useState(null);
+  const [setCt3MonOperation, setCt3MonOperationFile] = useState(null);
+  const [setCt6MonOperation, setCt6MonOperationFile] = useState(null);
+  const [setCt12MonOperation, setCt12MonOperationFile] = useState(null);
 
   useEffect(() => {
     if (currentData) {
+      const isDateValid = date => dayjs(date).isValid();
+  
       form.setFieldsValue({
         ...currentData,
-        birth_date: dayjs(currentData.birth_date),
-        operation_date: dayjs(currentData.operation_date),
-        gender: currentData.gender === 1 ? 'Ж' : 'М',
+        birth_date: isDateValid(currentData.birth_date) ? dayjs(currentData.birth_date) : null,
+        operation_date: isDateValid(currentData.operation_date) ? dayjs(currentData.operation_date) : null,
       });
     }
   }, [currentData, form]);
+  
 
     const handleOk = () => {
     form
@@ -28,10 +33,21 @@ const EditModalForm = ({ visible, onCancel, onSave, currentData }) => {
       .then((values) => {
         const dataToSend = { ...values };
         
-        dataToSend.gender = dataToSend.gender === '"Ж"' ? 1 : 0;
         
         if (ctBeforeOperationFile) {
           dataToSend.ct_before_operation = ctBeforeOperationFile;
+        }
+        if (setCt1MonOperation) {
+          dataToSend.ct_1_month_after_operation = setCt1MonOperation;
+        }
+        if (setCt3MonOperation) {
+          dataToSend.ct_3_month_after_operation = setCt3MonOperation;
+        }
+        if (setCt6MonOperation) {
+          dataToSend.ct_6_month_after_operation = setCt6MonOperation;
+        }
+        if (setCt12MonOperation) {
+          dataToSend.ct_12_month_after_operation = setCt12MonOperation;
         }
 
         for (const key in dataToSend) {
@@ -46,6 +62,10 @@ const EditModalForm = ({ visible, onCancel, onSave, currentData }) => {
         onSave(currentData.id, dataToSend);
         form.resetFields();
         setCtBeforeOperationFile(null); // Сброс файла после отправки
+        setCt1MonOperationFile(null);
+        setCt3MonOperationFile(null);
+        setCt6MonOperationFile(null);
+        setCt12MonOperationFile(null);
       })
       .catch((info) => {
         console.log('Ошибка валидации:', info);
@@ -59,85 +79,90 @@ const EditModalForm = ({ visible, onCancel, onSave, currentData }) => {
       onCancel={onCancel}
       onOk={handleOk}
       destroyOnClose={true}
+      okText="Сохранить"
     >
-      <Form form={form} layout="vertical" name="editForm">
+      <Form form={form} name="editForm">
         <Form.Item
           name="full_name"
           label="ФИО"
-          rules={[{ required: true, message: 'Пожалуйста, введите ФИО' }]}
         >
           <Input />
         </Form.Item>
         <Form.Item
           name="gender"
           label="Пол"
-          rules={[{ required: true, message: 'Выберите пол' }]}
         >
           <Select>
-            <Option value="1">Ж</Option>
-            <Option value="0">М</Option>
+            <Option value={1}>Ж</Option>
+            <Option value={0}>М</Option>
           </Select>
         </Form.Item>
         <Form.Item
           name="birth_date"
           label="Дата рождения"
-          rules={[{ required: true, message: 'Укажите дату рождения' }]}
         >
           <DatePicker format="DD-MM-YYYY" />
         </Form.Item>
         <Form.Item
           name="age"
           label="Возраст"
-          rules={[{ required: true, message: 'Укажите возраст' }]}
+        >
+          <Input type="number" />
+        </Form.Item>
+        <Form.Item 
+          name="height"
+          label="Рост" 
+        >
+          <Input type="number" />
+        </Form.Item>
+        <Form.Item 
+          name="weight"
+          label="Вес" 
         >
           <Input type="number" />
         </Form.Item>
         <Form.Item
           name="diagnosis_mkb"
           label="Диагноз по МКБ"
-          rules={[{ required: true, message: 'Укажите диагноз по МКБ' }]}
         >
           <Input />
         </Form.Item>
         <Form.Item
           name="operation_date"
           label="Дата операции"
-          rules={[{ required: true, message: 'Укажите дату операции' }]}
         >
           <DatePicker format="DD-MM-YYYY" />
         </Form.Item>
         <Form.Item
           name="operation_name"
           label="Название операции"
-          rules={[{ required: true, message: 'Укажите название операции' }]}
         >
           <Input />
         </Form.Item>
         <Form.Item
           name="intervention_level"
           label="Уровень вмешательства"
-          rules={[{ required: true, message: 'Укажите уровень вмешательства' }]}
         >
           <Input />
         </Form.Item>
         <Form.Item
           name="time_between_primary_and_revision_operation"
           label="Время между первичной и ревизионной операцией"
-          rules={[{ required: true, message: 'Укажите время' }]}
         >
           <Input type="number" />
         </Form.Item>
         <Form.Item
           name="neurological_deficit"
           label="Неврологический дефицит"
-          valuePropName="checked"
         >
-          <Switch />
+          <Select>
+            <Option value={1}>Да</Option>
+            <Option value={0}>Нет</Option>
+          </Select>
         </Form.Item>
         <Form.Item
           name="charlson_index"
           label="Индекс коморбидности Чарлсона"
-          rules={[{ required: true, message: 'Укажите индекс' }]}
         >
           <Input type="number" />
         </Form.Item>
@@ -145,95 +170,94 @@ const EditModalForm = ({ visible, onCancel, onSave, currentData }) => {
           name="vash_before_operation"
           label="ВАШ (визуально-аналоговая спина) до операции"
         >
-          <Input type="number" />
+          <Input type="number" min="0" max="10" />
         </Form.Item>
         <Form.Item
           name="vash_1_month_after_operation"
-          label="ВАШ (визуально-аналоговая спина) 1 месяц после операции"
+          label="ВАШ через 1 месяц после операции"
         >
-          <Input type="number" />
+          <Input type="number" min="0" max="10" />
         </Form.Item>
         <Form.Item
           name="vash_3_months_after_operation"
-          label="ВАШ (визуально-аналоговая спина) 3 месяца после операции"
+          label="ВАШ через 3 месяца после операции"
         >
-          <Input type="number" />
+          <Input type="number" min="0" max="10" />
         </Form.Item>
         <Form.Item
           name="vash_6_months_after_operation"
-          label="ВАШ (визуально-аналоговая спина) 6 месяцев после операции"
+          label="ВАШ через 6 месяцев после операции"
         >
-          <Input type="number" />
+          <Input type="number" min="0" max="10" />
         </Form.Item>
         <Form.Item
           name="vash_12_months_after_operation"
-          label="ВАШ (визуально-аналоговая спина) 12 месяцев после операции"
+          label="ВАШ через 12 месяцев после операции"
         >
-          <Input type="number" />
+          <Input type="number" min="0" max="10" />
         </Form.Item>
         <Form.Item
           name="odi_before_operation"
           label="ODI до операции"
         >
-          <Input type="number" />
+          <Input type="number" min="0" max="100" />
         </Form.Item>
         <Form.Item
           name="odi_1_month_after_operation"
-          label="ODI 1 месяц после операции"
+          label="ODI через 1 месяц после операции"
         >
-          <Input type="number" />
+          <Input type="number" min="0" max="100" />
         </Form.Item>
         <Form.Item
           name="odi_3_months_after_operation"
-          label="ODI 3 месяца после операции"
+          label="ODI через 3 месяца после операции"
         >
-          <Input type="number" />
+          <Input type="number" min="0" max="100" />
         </Form.Item>
         <Form.Item
           name="odi_6_months_after_operation"
-          label="ODI 6 месяцев после операции"
+          label="ODI через 6 месяцев после операции"
         >
-          <Input type="number" />
+          <Input type="number" min="0" max="100" />
         </Form.Item>
         <Form.Item
           name="odi_12_months_after_operation"
-          label="ODI 12 месяцев после операции"
+          label="ODI через 12 месяцев после операции"
         >
-          <Input type="number" />
+          <Input type="number" min="0" max="100" />
         </Form.Item>
         <Form.Item
           name="sf_before_operation"
-          label="SF 36 до операции"
+          label="SF-36 до операции"
         >
           <Input type="number" />
         </Form.Item>
         <Form.Item
           name="sf_1_month_after_operation"
-          label="SF 36 1 месяц после операции"
+          label="SF-36 через 1 месяц после операции"
         >
           <Input type="number" />
         </Form.Item>
         <Form.Item
           name="sf_3_months_after_operation"
-          label="SF 36 3 месяца после операции"
+          label="SF-36 через 3 месяца после операции"
         >
           <Input type="number" />
         </Form.Item>
         <Form.Item
           name="sf_6_months_after_operation"
-          label="SF 36 6 месяцев после операции"
+          label="SF-36 через 6 месяцев после операции"
         >
           <Input type="number" />
         </Form.Item>
         <Form.Item
           name="sf_12_months_after_operation"
-          label="SF 36 12 месяцев после операции"
+          label="SF-36 через 12 месяцев после операции"
         >
           <Input type="number" />
         </Form.Item>
-        <Form.Item label="CT до операции" name="ct_before_operation">
+        <Form.Item name="ct_before_operation" label="КТ (компьютерная томография) до операции" >
           <Upload
-            accept=".rar,.zip"
             customRequest={({ file, onSuccess }) => {
               setTimeout(() => {
                 onSuccess('ok');
@@ -245,58 +269,172 @@ const EditModalForm = ({ visible, onCancel, onSave, currentData }) => {
               }
             }}
           >
-            <Button icon={<InboxOutlined />}>Загрузить CT-скан</Button>
+            <Button icon={<InboxOutlined />}>Загрузить</Button>
           </Upload>
         </Form.Item>
-        <Form.Item label="CRB" name="crb">
+        <Form.Item name="ct_1_month_after_operation" label="КТ через 1 месяц после операции" >
+          <Upload
+            customRequest={({ file, onSuccess }) => {
+              setTimeout(() => {
+                onSuccess('ok');
+              }, 0);
+            }}
+            onChange={(info) => {
+              if (info.file.status === 'done' && info.file.originFileObj) {
+                setCt1MonOperationFile(info.file.originFileObj);
+              }
+            }}
+          >
+            <Button icon={<InboxOutlined />}>Загрузить</Button>
+          </Upload>
+        </Form.Item>
+        <Form.Item name="ct_3_month_after_operation" label="КТ через 3 месяца после операции" >
+          <Upload
+            customRequest={({ file, onSuccess }) => {
+              setTimeout(() => {
+                onSuccess('ok');
+              }, 0);
+            }}
+            onChange={(info) => {
+              if (info.file.status === 'done' && info.file.originFileObj) {
+                setCt3MonOperationFile(info.file.originFileObj);
+              }
+            }}
+          >
+            <Button icon={<InboxOutlined />}>Загрузить</Button>
+          </Upload>
+        </Form.Item>
+        <Form.Item name="ct_6_month_after_operation" label="КТ через 6 месяцев после операции" >
+          <Upload
+            customRequest={({ file, onSuccess }) => {
+              setTimeout(() => {
+                onSuccess('ok');
+              }, 0);
+            }}
+            onChange={(info) => {
+              if (info.file.status === 'done' && info.file.originFileObj) {
+                setCt6MonOperationFile(info.file.originFileObj);
+              }
+            }}
+          >
+            <Button icon={<InboxOutlined />}>Загрузить</Button>
+          </Upload>
+        </Form.Item>
+        <Form.Item name="ct_12_month_after_operation" label="КТ через 12 месяцев после операции" >
+          <Upload
+            customRequest={({ file, onSuccess }) => {
+              setTimeout(() => {
+                onSuccess('ok');
+              }, 0);
+            }}
+            onChange={(info) => {
+              if (info.file.status === 'done' && info.file.originFileObj) {
+                setCt12MonOperationFile(info.file.originFileObj);
+              }
+            }}
+          >
+            <Button icon={<InboxOutlined />}>Загрузить</Button>
+          </Upload>
+        </Form.Item>
+        <Form.Item name="crb" label="СРБ (с-реактивный белок) до операции" >
           <Input type="number" />
         </Form.Item>
-        <Form.Item label="Остеопороз" name="osteoporosis">
+        <Form.Item 
+          name="osteoporosis" 
+          label="Остеопороз (HU)" 
+        >
           <Input type="number" />
         </Form.Item>
-        <Form.Item label="Рост" name="height">
-          <Input type="number" />
-        </Form.Item>
-        <Form.Item label="Вес" name="weight">
-          <Input type="number" />
-        </Form.Item>
-        <Form.Item label="ИМТ" name="bmi">
-          <Input type="number" />
-        </Form.Item>
-        <Form.Item label="Результат интроперационного культурного исследования" name="intraoperative_culture_result">
-          <Switch />
-        </Form.Item>
-        <Form.Item label="ASA риск" name="asa_risk">
-          <Input type="number" />
-        </Form.Item>
-        <Form.Item label="Группа крови" name="blood_group">
-          <Select >
-            <Option value={3}>IV</Option>
-            <Option value={2}>III</Option>
-            <Option value={1}>II</Option>
-            <Option value={0}>I</Option>
+        <Form.Item 
+          name="intraoperative_culture_result"
+          label="Интраоперационный посев" 
+        >
+          <Select>
+            <Option value={1}>Положительный</Option>
+            <Option value={0}>Отрицательный</Option>
           </Select>
         </Form.Item>
-        <Form.Item label="Rh-фактор" name="rh_factor">
-          <Switch />
-        </Form.Item>
-        <Form.Item label="Осложнения" name="complications">
+        <Form.Item
+          name="pathogen"
+          label="Интраоперационный посев (возбудитель)"
+        >
           <Input />
         </Form.Item>
-        <Form.Item label="Шкала McNab" name="mcnab_scale">
+        <Form.Item 
+          name="asa_risk"
+          label="Риск по ASA" 
+        >
+          <Select>
+            <Option value={1}>I</Option>
+            <Option value={2}>II</Option>
+            <Option value={3}>III</Option>
+            <Option value={4}>IV</Option>
+            <Option value={5}>V</Option>
+          </Select>
+        </Form.Item>
+        <Form.Item 
+          name="blood_group"
+          label="Группа крови" 
+        >
+          <Select>
+            <Option value={1}>I</Option>
+            <Option value={2}>II</Option>
+            <Option value={3}>III</Option>
+            <Option value={4}>IV</Option>
+          </Select>
+        </Form.Item>
+        <Form.Item 
+          name="rh_factor"
+          label="Резус-фактор"
+        >
+        <Select>
+            <Option value={1}>RH+</Option>
+            <Option value={0}>RH-</Option>
+          </Select>
+        </Form.Item>
+        <Form.Item 
+          name="complications"
+          label="Осложнения" 
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item 
+          name="mcnab_scale"
+          label="Шкала McNab" 
+        >
+          <Select>
+            <Option value={5}>Отлично</Option>
+            <Option value={4}>Хорошо</Option>
+            <Option value={3}>Удовлетворительно</Option>
+            <Option value={2}>Неудовлетворительно</Option>
+          </Select>
+        </Form.Item>
+        <Form.Item 
+          name="initial_platelet_level"
+          label="Исходный уровень тромбоцитов, *109/л" 
+        >
           <Input type="number" />
         </Form.Item>
-        <Form.Item label="Начальное количество тромбоцитов" name="initial_platelet_level">
+        <Form.Item 
+          name="final_platelet_level"
+          label="Конечный уровень тромбоцитов, *109/л" 
+        >
           <Input type="number" />
         </Form.Item>
-        <Form.Item label="Конечное количество тромбоцитов" name="final_platelet_level">
+        <Form.Item 
+          name="final_thrombogel_volume"
+          label="Конечный объем тромбогеля, мл" 
+        >
           <Input type="number" />
         </Form.Item>
-        <Form.Item label="Объем тромбогеля в конце операции" name="final_thrombogel_volume">
-          <Input type="number" />
-        </Form.Item>
-        <Form.Item label="Аллоиммунитет" name="alloimmunity" valuePropName="checked">
-          <Switch />
+        <Form.Item 
+          name="alloimmunity" 
+          label="Аллокость"
+        >
+          <Select>
+            <Option value={1}>Да</Option>
+            <Option value={0}>Нет</Option>
+          </Select>
         </Form.Item>
       </Form>
     </Modal>

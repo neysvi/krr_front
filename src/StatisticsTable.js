@@ -9,9 +9,9 @@ const StatisticsTable = () => {
   const searchInput = useRef(null);
 
   const getColumnWidth = (title) => {
-    const padding = 16; // Здесь вы можете настроить отступ
-    const minWidth = 100; // Минимальная ширина столбца
-    const textWidth = title.length * 10; // Здесь вы можете настроить ширину символа
+    const padding = 16; // отступ
+    const minWidth = 100; // минимальная ширина столбца
+    const textWidth = title.length * 10; // ширину символа
     return Math.max(textWidth + padding, minWidth);
   };
 
@@ -120,7 +120,7 @@ const StatisticsTable = () => {
         title: 'Название',
         dataIndex: 'column_name',
         key: 'column_name',
-        width: getColumnWidth('ФИО'),
+        width: getColumnWidth('Название'),
         ...getColumnSearchProps('column_name'),
         sorter: (a, b) => a.column_name.localeCompare(b.column_name),
     },
@@ -150,7 +150,7 @@ const StatisticsTable = () => {
         title: 'Стандартная девиация',
         dataIndex: 'standard_deviation',
         key: 'standard_deviation',
-        width: getColumnWidth('Возраст'),
+        width: getColumnWidth('Стандартная девиация'),
         sorter: (a, b) => a.standard_deviation - b.standard_deviation,
     },
   ];
@@ -160,7 +160,7 @@ const StatisticsTable = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('http://localhost:5000/get_stat');
+        const response = await fetch('/api/get_stat');
         const responseData = await response.json();
         setData(responseData.map((item, index) => ({
           key: index,
@@ -193,7 +193,9 @@ const StatisticsTable = () => {
 
   return (
     <>
-      <h1>Расчетные показатели</h1>
+      <div className="header-container">
+      <h1 className="app-title">Расчетные показатели</h1>
+    </div>
       <Table
         key={resetKey}
         columns={columns}
